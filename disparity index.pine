@@ -1,0 +1,50 @@
+//@version=5
+// Disparity Index by Darcy Crypto
+indicator("Disparity Index", shorttitle="DI Darcy", timeframe="D")
+
+//timeframe = input.timeframe(title="Timeframe",defval="W",options=["W","D"])
+weekly_length = input.int(title="Weekly Length", minval=1, defval=20)
+
+//weekly = request.security(syminfo.tickerid, timeframe, close)
+string ma_type = input.string(title="Moving average", defval="SMA", options=["SMA","EMA"])
+
+float ma_daily = switch ma_type
+    "SMA" => ta.sma(close, weekly_length*7)
+    "EMA" => ta.ema(close, weekly_length*7)
+
+di = 100 * (close - ma_daily) / ma_daily
+
+diColor = if di <= 0 
+    color.blue
+else if di <= 25
+    color.green
+else if di <= 50
+    color.lime
+else if di <= 75
+    color.yellow
+else if di <= 100
+    color.orange
+else
+    color.red
+    
+plus125Hline = hline(125, "+125", color.red)
+plus100Hline = hline(100, "+100",  color.orange)
+plus75Hline = hline( 75, "+75",  color.yellow)
+plus50Hline  = hline( 50, "+50",  color.lime)
+plus25Hline  = hline( 25, "+25",  color.green)
+zeroHline    = hline(  0, "Zero", color.gray, linestyle = hline.style_dotted)
+minus50Hline = hline(-50, "-50",  color.blue)
+
+// ————— Function returns a color in a light shade for use as a background.
+fillColor(color col) =>
+    color.new(col, 90)
+
+fill(plus125Hline,  plus100Hline,  fillColor(color.red))
+fill(plus100Hline,  plus75Hline,  fillColor(color.orange))
+fill(plus75Hline,  plus50Hline,  fillColor(color.yellow))
+fill(plus50Hline,  plus25Hline,    fillColor(color.lime))
+fill(plus25Hline,    zeroHline, fillColor(color.green))
+fill(zeroHline, minus50Hline, fillColor(color.blue))
+
+plot(di, title="Disparity Index", linewidth=2, color=diColor)
+plotchar(ma_daily, title="MA Daily",char="",location=location.top)
